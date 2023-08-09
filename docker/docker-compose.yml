@@ -26,7 +26,7 @@ services:
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://localhost:${VECTOR_PORT}"
+        syslog-address: "tcp://localhost:9000"
         tag: studio
     depends_on:
       analytics:
@@ -58,12 +58,12 @@ services:
     # https://unix.stackexchange.com/a/294837
     entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
     ports:
-      - ${KONG_HTTP_PORT}:8000/tcp
-      - ${KONG_HTTPS_PORT}:8443/tcp
+      - 8000:8000/tcp
+      - 8443:8443/tcp
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://localhost:${VECTOR_PORT}"
+        syslog-address: "tcp://localhost:9000"
         tag: kong
     depends_on:
       analytics:
@@ -108,7 +108,7 @@ services:
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://localhost:${VECTOR_PORT}"
+        syslog-address: "tcp://localhost:9000"
         tag: auth
     environment:
       GOTRUE_API_HOST: 0.0.0.0
@@ -116,7 +116,7 @@ services:
       API_EXTERNAL_URL: ${API_EXTERNAL_URL}
 
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${5432}/${POSTGRES_DB}
 
       GOTRUE_SITE_URL: ${SITE_URL}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
@@ -160,10 +160,10 @@ services:
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://localhost:${VECTOR_PORT}"
+        syslog-address: "tcp://localhost:9000"
         tag: rest
     environment:
-      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${5432}/${POSTGRES_DB}
       PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS}
       PGRST_DB_ANON_ROLE: anon
       PGRST_JWT_SECRET: ${JWT_SECRET}
@@ -193,12 +193,12 @@ services:
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://localhost:${VECTOR_PORT}"
+        syslog-address: "tcp://localhost:9000"
         tag: realtime
     environment:
       PORT: 4000
       DB_HOST: ${POSTGRES_HOST}
-      DB_PORT: ${POSTGRES_PORT}
+      DB_PORT: ${5432}
       DB_USER: supabase_admin
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
@@ -244,7 +244,7 @@ services:
       SERVICE_KEY: ${SERVICE_ROLE_KEY}
       POSTGREST_URL: http://rest:3000
       PGRST_JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${5432}/${POSTGRES_DB}
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage
@@ -286,12 +286,12 @@ services:
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://localhost:${VECTOR_PORT}"
+        syslog-address: "tcp://localhost:9000"
         tag: meta
     environment:
       PG_META_PORT: 8080
       PG_META_DB_HOST: ${POSTGRES_HOST}
-      PG_META_DB_PORT: ${POSTGRES_PORT}
+      PG_META_DB_PORT: ${5432}
       PG_META_DB_NAME: ${POSTGRES_DB}
       PG_META_DB_USER: supabase_admin
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
@@ -306,14 +306,14 @@ services:
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://localhost:${VECTOR_PORT}"
+        syslog-address: "tcp://localhost:9000"
         tag: functions
     environment:
       JWT_SECRET: ${JWT_SECRET}
       SUPABASE_URL: http://kong:8000
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
-      SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@{POSTGRES_DB}:${POSTGRES_PORT}/${POSTGRES_DB}
+      SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@{POSTGRES_DB}:${5432}/${POSTGRES_DB}
       # TODO: Allow configuring VERIFY_JWT per function. This PR might help: https://github.com/supabase/cli/pull/786
       VERIFY_JWT: "${FUNCTIONS_VERIFY_JWT}"
     volumes:
@@ -347,7 +347,7 @@ services:
       DB_USERNAME: supabase_admin
       DB_DATABASE: ${POSTGRES_DB}
       DB_HOSTNAME: ${POSTGRES_HOST}
-      DB_PORT: ${POSTGRES_PORT}
+      DB_PORT: ${5432}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_SCHEMA: _analytics
       LOGFLARE_API_KEY: ${LOGFLARE_API_KEY}
@@ -357,7 +357,7 @@ services:
       RELEASE_COOKIE: cookie
 
       # Comment variables to use Big Query backend for analytics
-      POSTGRES_BACKEND_URL: postgresql://supabase_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      POSTGRES_BACKEND_URL: postgresql://supabase_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${5432}/${POSTGRES_DB}
       POSTGRES_BACKEND_SCHEMA: _analytics
       LOGFLARE_FEATURE_FLAG_OVERRIDE: multibackend=true
 
@@ -386,7 +386,7 @@ services:
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://localhost:${VECTOR_PORT}"
+        syslog-address: "tcp://localhost:9000"
         tag: db
     command:
       - postgres
@@ -397,11 +397,11 @@ services:
     restart: unless-stopped
     ports:
       # Pass down internal port because it's set dynamically by other services
-      - 127.0.0.1:${POSTGRES_PORT}:${POSTGRES_PORT}
+      - 127.0.0.1:${5432}:${5432}
     environment:
       POSTGRES_HOST: /var/run/postgresql
-      PGPORT: ${POSTGRES_PORT}
-      POSTGRES_PORT: ${POSTGRES_PORT}
+      PGPORT: ${5432}
+      5432: ${5432}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB}
@@ -429,14 +429,14 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:${VECTOR_API_PORT}/health"
+          "http://localhost:9001/health"
         ]
       timeout: 5s
       interval: 5s
       retries: 3
     ports:
-      - ${VECTOR_PORT}:${VECTOR_PORT}
-      - ${VECTOR_API_PORT}:${VECTOR_API_PORT}
+      - 9000:9000
+      - 9001:9001
     volumes:
       - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro
     command: [ "--config", "etc/vector/vector.yml" ]
