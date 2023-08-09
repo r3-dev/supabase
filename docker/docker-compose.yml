@@ -401,7 +401,7 @@ services:
     environment:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: 5432
-      5432: 5432
+      POSTGRES_PORT: 5432
       PGPASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB}
